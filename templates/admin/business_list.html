@@ -1,0 +1,101 @@
+{% extends "admin/admin_nav.html" %}
+{% block content %}
+<div class="container mx-auto px-6 py-10">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Registered Businesses</h2>
+
+    <div class="overflow-x-auto bg-white shadow-xl rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+                <tr>
+                    <th class="px-6 py-4 text-left">User Full Name</th>
+                    <th class="px-6 py-4 text-left">Business Name</th>
+                    <th class="px-6 py-4 text-left">Phone Number</th>
+                    <th class="px-6 py-4 text-left">Status</th>
+                    <th class="px-6 py-4 text-left">Citizenship</th>
+                    <th class="px-6 py-4 text-left">Action</th>
+                    <th class="px-6 py-4 text-left">Details</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                {% for business in businesses %}
+                <tr class="hover:bg-gray-50 transition duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-800">
+                        {{ business.user_id.first_name }}
+                        {% if business.user_id.middle_name %}{{ business.user_id.middle_name }}{% endif %}
+                        {{ business.user_id.last_name }}
+                    </td>
+                    <td class="px-6 py-4 text-gray-800">{{ business.business_name }}</td>
+                    <td class="px-6 py-4 text-gray-800">{{ business.business_phone_number }}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full
+                            {% if business.status == 'Pending' %}
+                                bg-yellow-100 text-yellow-800
+                            {% elif business.status == 'Reapplied' %}
+                                bg-yellow-100 text-blue-800
+                            {% elif business.status == 'Approved' %}
+                                bg-green-100 text-green-800
+                            {% elif business.status == 'Rejected' %}
+                                bg-red-100 text-red-800
+                            {% endif %}
+                        ">
+                            {{ business.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 flex items-center space-x-2">
+                        {% if business.citizenship_front %}
+                            <img src="{{ business.citizenship_front.url }}" width="50" class="rounded shadow-md border">
+                        {% endif %}
+                        {% if business.citizenship_back %}
+                            <img src="{{ business.citizenship_back.url }}" width="50" class="rounded shadow-md border">
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if business.status == 'Pending' %}
+                            <div class="flex space-x-2">
+                                <a href="{% url 'update_business_status' business.business_id 'Approved' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 transition">
+                                    ✅ Approve
+                                </a>
+                                <a href="{% url 'update_business_status' business.business_id 'Rejected' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition">
+                                    ❌ Reject
+                                </a>
+                            </div>
+                        {% elif business.status == 'Reapplied' %}
+                            <div class="flex space-x-2">
+                                <a href="{% url 'update_business_status' business.business_id 'Approved' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 transition">
+                                    ✅ Approve
+                                </a>
+                                <a href="{% url 'update_business_status' business.business_id 'Rejected' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition">
+                                    ❌ Reject
+                                </a>
+                            </div>
+                        {% elif business.status == 'Approved' %}
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'update_business_status' business.business_id 'Rejected' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition">
+                                    ❌ Reject
+                                </a>
+                            </div>
+                        {% elif business.status == 'Rejected' %}
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'update_business_status' business.business_id 'Approved' %}"
+                                   class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 transition">
+                                    ✅ Approve
+                                </a>
+                            </div>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'view_business_details' business.business_id %}" class="text-blue-600 hover:text-blue-800 font-medium">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

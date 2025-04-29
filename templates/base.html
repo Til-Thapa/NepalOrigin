@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}My Website{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @keyframes fadeInOut {
+            0% { opacity: 0; visibility: hidden; }
+            10%, 80% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
+        .messages {
+            animation: fadeInOut 5s forwards;
+        }
+    </style>
+</head>
+
+<body class="font-sans bg-[#dae0db] m-0 p-0">
+
+<div class="sticky top-0 z-50 flex justify-between items-center px-5 py-2 shadow bg-[#dae0db]">
+    <div class="flex items-center">
+        <a href="#" class="text-black text-2xl">
+            <img src="{% static 'webpage_images/Nepal.svg' %}" alt="Nepal's Origin" class="h-16 w-auto" />
+        </a>
+    </div>
+
+    <div class="flex justify-center flex-grow space-x-6">
+        <a href="{% url 'home' %}" class="text-black text-2xl hover:underline">Home</a>
+        <a href="{% url 'products' %}" class="text-black text-2xl hover:underline">Product</a>
+        <a href="{% url 'cart' %}" class="text-black text-2xl hover:underline">Cart</a>
+    </div>
+
+    <div class="flex items-center space-x-4">
+        {% if request.session.user_id %}
+            {% if request.session.role_id == 1 %}
+                {% if request.session.business_status == 'Pending' %}
+                    <a href="{% url 'pending' %}" class="text-black text-2xl hover:underline">Business Pending</a>
+                {% elif request.session.business_status == 'Rejected' %}
+                    <a href="{% url 'rejected' %}" class="text-black text-2xl hover:underline">Business Rejected</a>
+                {% elif request.session.business_status == 'Reapplied' %}
+                    <a href="{% url 'rejected' %}" class="text-black text-2xl hover:underline">Business Reapplied</a>
+                {% else %}
+                    <a href="{% url 'business_register' %}" class="text-black text-2xl hover:underline">Become Vendor</a>
+                {% endif %}
+            {% elif request.session.role_id == 2 %}
+                <a href="{% url 'business_dashboard' %}" class="text-black text-2xl hover:underline">Vendor Dashboard</a>
+            {% endif %}
+            <a href="{% url 'profile' %}" class="text-black text-2xl hover:underline">{{ request.session.user_name }}</a>
+            <a href="{% url 'logout' %}" class="text-black text-2xl hover:underline">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="text-black text-2xl hover:underline">Login</a>
+            <span class="text-2xl">|</span>
+            <a href="{% url 'register' %}" class="text-black text-2xl hover:underline">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="fixed top-[7%] right-[7%] p-4 max-w-sm text-white rounded shadow z-[9999] messages
+                    {% if message.tags == 'success' %}bg-green-500
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}bg-red-500
+                    {% elif message.tags == 'info' %}bg-blue-500
+                    {% else %}bg-gray-700
+                    {% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+{% block content %}
+
+
+{% endblock %}
+<footer class="flex flex-wrap justify-between gap-8 p-10 border-t border-gray-300 text-gray-800 text-base">
+    <div class="w-full text-center mt-10 text-sm text-gray-600">
+        <p>
+            <a href="/privacy-policy" class="hover:text-blue-600">Privacy Policy</a> |
+            <a href="/terms-and-conditions" class="hover:text-blue-600">Terms and Conditions</a>
+        </p>
+        <p class="mt-1">&copy; 2024 Nepal’s Origin. All rights reserved.</p>
+    </div>
+</footer>
+
+</body>
+</html>

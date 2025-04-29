@@ -1,0 +1,32 @@
+{% extends "business/business_nav.html" %}
+{% block content %}
+
+<div class="p-6 space-y-8">
+
+    <section class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4">Edit Business Details</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label for="business_name" class="block text-sm font-medium">Business Name</label>
+                <input type="text" id="business_name" name="business_name" value="{{ business.business_name }}"
+                    class="mt-2 p-2 w-full border rounded-lg" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="business_phone_number" class="block text-sm font-medium">Phone Number</label>
+                <input type="text" id="business_phone_number" name="business_phone_number" value="{{ business.business_phone_number }}"
+                    class="mt-2 p-2 w-full border rounded-lg" required>
+            </div>
+
+            <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">
+                Save Changes
+            </button>
+        </form>
+    </section>
+
+</div>
+
+{% endblock %}

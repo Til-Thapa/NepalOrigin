@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row bg-white">
+
+    {% include 'products/product_sidebar.html' %}
+
+    <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+        {% if products %}
+            {% for product in products %}
+                <div class="bg-gray-100 p-4 rounded-lg text-center shadow transition-transform hover:scale-105">
+                    <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}"
+                         class="w-full h-40 object-cover rounded mb-3" />
+
+                    <h4 class="text-lg font-semibold mb-2">{{ product.product_name }}</h4>
+                    <p class="text-sm text-left mb-2">{{ product.product_description }}</p>
+                    <p class="text-sm text-right font-medium">Rs. {{ product.price|floatformat:0 }}</p>
+
+                    <p class="text-sm text-left text-gray-600 mt-2">Available: {{ product.quantity }} in stock</p>
+
+                   <div class="mt-4 flex flex-col items-center space-y-2">
+                        <form method="post" action="{% url 'add_to_cart' product.product_id %}" class="flex flex-row items-center justify-between w-full space-y-2">
+                            {% csrf_token %}
+                            <div class="flex flex-row items-center space-x-2">
+                                <label for="quantity-{{ product.product_id }}" class="text-sm">Quantity:</label>
+                                <input type="number"
+                                       name="quantity"
+                                       id="quantity-{{ product.product_id }}"
+                                       value="1"
+                                       min="1"
+                                       max="{{ product.quantity }}"
+                                       class="w-16 text-left border border-gray-300 rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />  <!-- Restrict max quantity based on available stock -->
+                            </div>
+
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">
+                                Add to Cart
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="col-span-full text-center text-gray-600">No products found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

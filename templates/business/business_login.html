@@ -1,0 +1,123 @@
+{% extends "business/business_nav.html" %}
+{% block content %}
+
+<div class="p-6 space-y-8">
+
+
+<section class="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+    <div>
+        <h2 class="text-2xl font-semibold mb-4">Business Details</h2>
+        <div class="space-y-2">
+            <p><strong>Business Name:</strong> {{ business.business_name }}</p>
+            <p><strong>Phone:</strong> {{ business.business_phone_number }}</p>
+        </div>
+    </div>
+    <a href="{% url 'edit_business_dash' %}" class="text-blue-500 font-semibold hover:underline mb-4">
+        Edit Business
+    </a>
+</section>
+
+
+
+
+    <section class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4">Recently Added Products</h2>
+        <table class="min-w-full table-auto border-collapse">
+            <thead>
+                <tr>
+                    <th class="border-b py-2 px-4 text-left">Product Name</th>
+                    <th class="border-b py-2 px-4 text-left">Category</th>
+                    <th class="border-b py-2 px-4 text-left">Price</th>
+                    <th class="border-b py-2 px-4 text-left">Quantity</th>
+                    <th class="border-b py-2 px-4 text-left">Date Added</th>
+                    <th class="border-b py-2 px-4 text-left">Date Modified</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td class="border-b py-2 px-4">{{ product.product_name }}</td>
+                        <td class="border-b py-2 px-4">{{ product.category_id.category_name }}</td>
+                        <td class="border-b py-2 px-4">Rs {{ product.price }}</td>
+                        <td class="border-b py-2 px-4">{{ product.quantity }}</td>
+                        <td class="border-b py-2 px-4">{{ product.created_at }}</td>
+                        <td class="border-b py-2 px-4">{{ product.updated_at }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center py-2">No products added yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Recent Orders Table -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Recent Orders</h2>
+            <table class="min-w-full table-auto border-collapse">
+                <thead>
+                    <tr>
+                        <th class="border-b py-2 px-4 text-left">Customer Name</th>
+                        <th class="border-b py-2 px-4 text-left">Product</th>
+                        <th class="border-b py-2 px-4 text-left">Subtotal</th>
+                        <th class="border-b py-2 px-4 text-left">Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order_item in order_items %}
+                        <tr>
+                            <td class="border-b py-2 px-4">
+                                {{ order_item.order_id.user_id.first_name }}
+                                {% if order_item.order_id.user_id.middle_name %}
+                                    {{ order_item.order_id.user_id.middle_name }}
+                                {% endif %}
+                                {{ order_item.order_id.user_id.last_name }}
+                            </td>
+                            <td class="border-b py-2 px-4">{{ order_item.product_id.product_name }}</td>
+                            <td class="border-b py-2 px-4">Rs {{ order_item.subtotal }}</td>
+                            <td class="border-b py-2 px-4">{{ order_item.order_id.created_at|date:"d M Y" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-2">No orders yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Recent Payments</h2>
+            <table class="min-w-full table-auto border-collapse">
+                <thead>
+                    <tr>
+                        <th class="border-b py-2 px-4 text-left">Order ID</th>
+                        <th class="border-b py-2 px-4 text-left">Amount</th>
+                        <th class="border-b py-2 px-4 text-left">Payment Method</th>
+                        <th class="border-b py-2 px-4 text-left">Payment Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td class="border-b py-2 px-4">{{ payment.order_id.order_id }}</td>
+                            <td class="border-b py-2 px-4">Rs {{ payment.amount }}</td>
+                            <td class="border-b py-2 px-4">{{ payment.payment_method }}</td>
+                            <td class="border-b py-2 px-4">{{ payment.payment_date|date:"d M Y" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-2">No payments received yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+</div>
+
+{% endblock %}

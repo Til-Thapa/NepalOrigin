@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>eSewa Payment</title>
+</head>
+<body>
+    <h2>eSewa Payment</h2>
+    <form action="{% url 'esewa_payment' %}" method="POST">
+        {% csrf_token %}
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" value="100" required>
+
+        <label for="transaction_uuid">Transaction UUID:</label>
+        <input type="text" id="transaction_uuid" name="transaction_uuid" value="TEST-12345" required>
+
+        <label for="product_code">Product Code:</label>
+        <input type="text" id="product_code" name="product_code" value="EPAYTEST" required>
+
+        <button type="submit">Pay with eSewa</button>
+    </form>
+</body>
+</html>

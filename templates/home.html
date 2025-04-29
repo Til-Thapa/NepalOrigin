@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+<!--    .container {-->
+<!--        background: #F7F2F2;-->
+<!--    }-->
+
+    /* First Item Styles */
+    .first_item {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .first_item img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .first_item_text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        text-align: center;
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-evenly;
+        align-content: space-around;
+        flex-wrap: wrap;
+        flex-direction: column;
+    }
+
+    .big-text {
+        font-size: 100px;
+        font-family: none;
+    }
+
+    .small-text {
+        font-size: 80px;
+        font-family: none;
+    }
+
+    .txt_btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(217, 217, 217, 0.4);
+        height: 100px;
+    }
+
+    .first_item_text h3 {
+        font-family: none;
+        opacity: 1;
+        font-size: 64px;
+    }
+
+    /* Second Item Styles */
+    .second_item p {
+        text-align: center;
+        font-size: 96px;
+        font-weight: bold;
+        font-family: none;
+        margin: 20px 0; /* Adds some space above and below */
+        line-height: 2;
+    }
+
+    /* Third Item Styles */
+    .third_item img {
+        width: 100%;
+    }
+
+    .fourth_item {
+    margin-top: 200px;
+    display: flex;
+    justify-content: flex-end; /* Align content to the right */
+    position: relative;
+    }
+
+    .fourth_item img {
+        width: 100%;
+    }
+
+    .fourth_item_text {
+        position: absolute;
+        top: 30%;
+        left: 2.5%;
+        transform: translate(0, -50%);
+        width: 100%;
+        text-align: left;
+        color: white;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .big-text2 {
+        font-size: 100px; /* Adjust size for big text */
+        font-family: none;
+        margin-bottom: 20px; /* Add space below the big text */
+    }
+
+    ul {
+        padding: 0px 0px 0px 30px;
+    }
+
+    ul li {
+        font-size: 40px;
+        margin-bottom: 10px; /* Add space between list items */
+    }
+
+</style>
+
+<div class="first_item">
+    <img class="image" id="hand1" src="{% static 'webpage_images/home/hand1.jpg' %}" alt="home1">
+    <div class="first_item_text">
+        <p>
+            <span class="big-text">From All Over Nepal</span><br><br><br>
+            <span class="small-text">From farm to your door</span>
+        </p>
+        <h3 class="txt_btn"><a>Explore the farm goods</a></h3>
+    </div>
+</div>
+
+<div class="second_item">
+    <p>We are all over Nepal <br>Explore Shop Near You</p>
+</div>
+
+<div class="third_item">
+    <img class="image" id="google_map" src="{% static 'webpage_images/home/map.png' %}" alt="hand3">
+</div>
+
+<div class="fourth_item">
+    <img class="image" id="hand2" src="{% static 'webpage_images/home/hand3.png' %}" alt="home2">
+    <div class="fourth_item_text">
+        <span class="big-text2">How Nepal's Origin Works</span>
+        <ul>
+            <li>Order Online</li>
+            <li>Delivery Charge</li>
+            <li>Cancel before shipping</li>
+            <li>We ensure fast and fresh delivery</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

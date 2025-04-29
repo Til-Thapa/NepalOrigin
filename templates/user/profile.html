@@ -1,0 +1,97 @@
+{% extends 'user/profile_nav.html' %}
+{% block content %}
+<div class="max-w-full mx-auto px-6 py-12 bg-white shadow-lg rounded-lg">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-semibold text-gray-800">User Profile</h2>
+        <a href="{% url 'edit_profile' %}" class="text-blue-600 hover:text-blue-800 font-medium">Edit Profile</a>
+    </div>
+
+    <div class="flex flex-col lg:flex-row items-center lg:items-start mb-12 space-y-6 lg:space-y-0 lg:space-x-8">
+        {% if user.image %}
+            <div class="w-48 h-48 bg-gray-200 rounded-full overflow-hidden">
+                <img src="{{ user.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
+            </div>
+        {% else %}
+            <div class="w-48 h-48 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-semibold text-3xl">
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+            </div>
+        {% endif %}
+
+        <div class="flex flex-col justify-center text-gray-700 w-full">
+            <p class="text-xl font-semibold mb-2">
+                <span class="font-medium text-gray-800">Name:</span>
+                {{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}
+            </p>
+            <p class="text-lg mb-2">
+                <span class="font-medium text-gray-800">Phone:</span>
+                {{ user.email }}
+            </p>
+            <p class="text-lg mb-2">
+                <span class="font-medium text-gray-800">Joined:</span>
+                {{ user.created_at|date:"d M, Y" }}
+            </p>
+        </div>
+    </div>
+
+    {% if business %}
+        <div class="border-t border-gray-200 pt-8">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Business Information</h3>
+            <p class="text-lg mb-2"><strong>Business Name:</strong> {{ business.business_name }}</p>
+            <p class="text-lg mb-2"><strong>Business Phone_Number:</strong> {{ business.business_phone_number }}</p>
+        </div>
+    {% endif %}
+
+    <div class="border-t border-gray-200 pt-8">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Recent Orders</h3>
+        <table class="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-600">Order ID</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-600">Product</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-600">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-600">Total</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for order_item in order_items %}
+                    <tr>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ order_item.order_id.order_id }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ order_item.product_id.product_name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ order_item.status }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Rs. {{ order_item.subtotal }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">No recent orders found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="mt-4 text-right">
+            <a href="{% url 'user_orders' %}" class="text-blue-600 hover:text-blue-800 font-medium">View All Orders</a>
+        </div>
+    </div>
+</div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="fixed top-[7%] right-[7%] p-4 max-w-sm text-white rounded shadow z-[9999]
+                    {% if message.tags == 'success' %}bg-green-500
+                    {% elif message.tags == 'error' %}bg-red-500
+                    {% elif message.tags == 'info' %}bg-blue-500
+                    {% endif %} messages">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+    <style>
+        @keyframes fadeInOut {
+            0% { opacity: 0; visibility: hidden; }
+            10%, 80% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
+        .messages {
+            animation: fadeInOut 5s forwards;
+        }
+    </style>
+{% endblock %}
