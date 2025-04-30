@@ -77,8 +77,8 @@ urlpatterns = [
     path('update-order-item-status/<int:order_item_id>/<str:status>/', views.update_order_item_status, name='update_order_item_status'),
 
     # path("test-esewa/", esewa, name="test_esewa"),
-    # path('esewa/payment/', views.esewa_payment, name='esewa_payment'),
-    # path('esewa/success', views.success, name='esewa_success'),
-    # path('esewa/failure', views.failure, name='esewa_failure'),
+    path('esewa/payment/', views.esewa_payment, name='esewa_payment'),
+    path('esewa/success', views.success, name='esewa_success'),
+    path('esewa/failure', views.failure, name='esewa_failure'),
 ]
 

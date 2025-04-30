@@ -1,11 +1,8 @@
 import hashlib
-import uuid
 import hmac
 import random
 
-from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.utils.timezone import localtime, now
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,7 +11,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
 from .models import User, UserRole, Business, Product, ProductCategory, Cart, CartItem, Orders, Order_Item, Payment, \
     Review
-from django.http import Http404
+from django.http import Http404, HttpResponse
 
 
 @csrf_exempt
@@ -1360,7 +1357,6 @@ def esewa_payment(request):
         signature = generate_signature(f"{data['amount']}{data['transaction_uuid']}{data['product_code']}")
         data['signature'] = signature
 
-        # Now, send this data to eSewa form for processing
         response = requests.post("https://rc-epay.esewa.com.np/api/epay/main/v2/form", data=data)
 
         if response.status_code == 200:
