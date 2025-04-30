@@ -1,13 +1,19 @@
 import hashlib
 import uuid
 import hmac
+import random
+
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.utils.timezone import localtime, now
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, UserRole, Business, Product , ProductCategory, Cart, CartItem ,Orders ,Order_Item ,Payment
+from .models import User, UserRole, Business, Product, ProductCategory, Cart, CartItem, Orders, Order_Item, Payment, \
+    Review
 from django.http import Http404
 
 
@@ -19,78 +25,175 @@ def home(request):
 def back(request):
     return render(request, 'home.html')
 
+
+
 @csrf_exempt
 def register_view(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and not request.session.get('otp_verified'):
         first_name = request.POST.get('first_name')
         middle_name = request.POST.get('middle_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
         image = request.FILES.get('image')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect('register')
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already registered.")
             return redirect('register')
 
+        request.session['register_data'] = {
+            'first_name': first_name,
+            'middle_name': middle_name,
+            'last_name': last_name,
+            'email': email,
+            'password': password,
+        }
+
+        if image:
+            from django.core.files.base import ContentFile
+            request.session['image_name'] = image.name
+            request.session['image_data'] = image.read().decode('latin1')
+            request.session['has_image'] = True
+        else:
+            request.session['has_image'] = False
+
+        generate_otp(request, email)
+        request.session['otp_next_url'] = 'register'
+        return redirect('verify_otp')
+
+    elif request.session.get('otp_verified'):
+        data = request.session.get('register_data')
+        if not data:
+            messages.error(request, "Session expired.")
+            return redirect('register')
+
+        image = None
+        if request.session.get('has_image'):
+            from django.core.files.base import ContentFile
+            image = ContentFile(
+                request.session.get('image_data').encode('latin1'),
+                name=request.session.get('image_name')
+            )
+
         user = User(
             image=image,
-            first_name=first_name,
-            middle_name=middle_name,
-            last_name=last_name,
-            email=email,
-            password=make_password(password)
+            first_name=data['first_name'],
+            middle_name=data['middle_name'],
+            last_name=data['last_name'],
+            email=data['email'],
+            password=make_password(data['password'])
         )
         user.save()
+
+        for key in ['otp', 'otp_email', 'otp_verified', 'otp_next_url', 'register_data', 'image_name', 'image_data', 'has_image']:
+            request.session.pop(key, None)
+
         messages.success(request, "Registration successful! Please log in.")
         return redirect('login')
 
     return render(request, 'register.html')
 
+
 @csrf_exempt
 def login_view(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and not request.session.get('otp_verified'):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
         try:
             user = User.objects.get(email=email)
-
             if check_password(password, user.password):
-                request.session['user_id'] = user.user_id
-                request.session['role_id'] = user.role_id.role_id
-                request.session['email'] = user.email
-                request.session['user_role'] = user.role_id.role
-                request.session["user_name"] = f"{user.first_name} {user.middle_name + ' ' if user.middle_name else ''}{user.last_name}"
-                sesrole = request.session.get('role_id')
+                request.session['login_data'] = {
+                    'user_id': user.user_id,
+                    'email': user.email,
+                    'password_ok': True,
+                }
 
-                if sesrole == 3 or sesrole == 4:
-                    return redirect('admin_dashboard')
-                else:
-                    try:
-                        business = Business.objects.get(user_id=user.user_id)
-                        request.session['business_status'] = business.status
-                        request.session['business_id'] = business.business_id
-                    except Business.DoesNotExist:
-                        pass
-
-                    messages.success(request, "Login Successful")
-                    return redirect('home')
+                generate_otp(request, email)
+                request.session['otp_next_url'] = 'login'
+                return redirect('verify_otp')
             else:
                 messages.error(request, "Invalid password.")
         except User.DoesNotExist:
             messages.error(request, "Email not registered.")
 
-    return render(request, 'login.html')
+    elif request.session.get('otp_verified'):
+        login_data = request.session.get('login_data')
+        if not login_data or not login_data.get('password_ok'):
+            messages.error(request, "Session expired or invalid.")
+            return redirect('login')
 
+        try:
+            user = User.objects.get(user_id=login_data['user_id'])
+
+            request.session['user_id'] = user.user_id
+            request.session['role_id'] = user.role_id.role_id
+            request.session['email'] = user.email
+            request.session['user_role'] = user.role_id.role
+            request.session["user_name"] = f"{user.first_name} {user.middle_name + ' ' if user.middle_name else ''}{user.last_name}"
+
+            for key in ['otp', 'otp_email', 'otp_verified', 'otp_next_url', 'login_data']:
+                request.session.pop(key, None)
+
+            sesrole = request.session.get('role_id')
+
+            if sesrole == 3 or sesrole == 4:
+                return redirect('admin_dashboard')
+            else:
+                try:
+                    business = Business.objects.get(user_id=user.user_id)
+                    request.session['business_status'] = business.status
+                    request.session['business_id'] = business.business_id
+                except Business.DoesNotExist:
+                    pass
+
+                messages.success(request, "Login Successful")
+                return redirect('home')
+        except User.DoesNotExist:
+            messages.error(request, "Something went wrong.")
+            return redirect('login')
+
+    return render(request, 'login.html')
 @csrf_exempt
 def logout_view(request):
     request.session.flush()
     messages.success(request, "Logout Successful")
     return redirect('home')
 
+def generate_otp(request, email):
+    otp = str(random.randint(100000, 999999))
+    request.session['otp'] = otp
+    request.session['otp_email'] = email
+    request.session['otp_verified'] = False
 
+    send_mail(
+        subject='Your OTP Code',
+        message=f'Your OTP is: {otp}',
+        from_email='stilbdrthapa@example.com',
+        recipient_list=[email],
+        fail_silently=False
+    )
 
+@csrf_exempt
+def verify_otp_view(request):
+    if request.method == 'POST':
+        user_otp = request.POST.get('otp')
+        session_otp = request.session.get('otp')
+
+        if user_otp == session_otp:
+            request.session['otp_verified'] = True
+            # messages.success(request, "OTP verified successfully.")
+            return redirect(request.session.get('otp_next_url', 'home'))
+        else:
+            messages.error(request, "Invalid OTP.")
+            return redirect('verify_otp')
+
+    return render(request, 'verify_otp.html')
 
 def admin_dashboard(request):
     return render(request, 'admin/admin_dashboard.html')
@@ -145,7 +248,7 @@ def edit_profile(request):
             messages.error(request, "Old password is incorrect.")
             return redirect('edit_profile')
 
-        if new_password and new_password != confirm_password:
+        if new_password != confirm_password:
             messages.error(request, "New password and confirm password do not match.")
             return redirect('edit_profile')
 
@@ -458,7 +561,38 @@ def products(request):
     return render(request, 'products/products.html', context)
 
 
-@csrf_exempt
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    user_id= request.session.get('user_id')
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+
+        if rating and comment:
+            try:
+                review = Review.objects.create(
+                    product=product,
+                    user=user_id,
+                    rating=int(rating),
+                    comment=comment
+                )
+                messages.success(request, 'Thank you for your review!')
+            except Exception as e:
+                messages.error(request, f"An error occurred while submitting your review: {e}")
+        else:
+            messages.error(request, 'Please fill out both rating and comment fields.')
+
+        return redirect('product_detail', product_id=product_id)
+
+    reviews = Review.objects.filter(product=product)
+
+    return render(request, 'products/product_detail.html', {
+        'product': product,
+        'reviews': reviews,
+    })
+
+csrf_exempt
 def product_list(request):
     search_name = request.GET.get('search_name', '')
     category_id = request.GET.get('category', '')

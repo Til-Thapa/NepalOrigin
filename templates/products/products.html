@@ -9,10 +9,13 @@
         {% if products %}
             {% for product in products %}
                 <div class="bg-gray-100 p-4 rounded-lg text-center shadow transition-transform hover:scale-105">
-                    <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}"
-                         class="w-full h-40 object-cover rounded mb-3" />
+                    <a href="{% url 'product_detail' product.product_id %}">
+                        <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}"
+                             class="w-full h-40 object-cover rounded mb-3" />
 
-                    <h4 class="text-lg font-semibold mb-2">{{ product.product_name }}</h4>
+                        <h4 class="text-lg font-semibold mb-2">{{ product.product_name }}</h4>
+                    </a>
+
                     <p class="text-sm text-left mb-2">{{ product.product_description }}</p>
                     <p class="text-sm text-right font-medium">Rs. {{ product.price|floatformat:0 }}</p>
 

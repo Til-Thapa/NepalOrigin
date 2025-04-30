@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'NplOrigin.urls'
@@ -141,3 +142,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
 EESEWA_SUCCESS_URL = "localhost:8000/success/"
 ESEWA_FAILURE_URL = "localhost:8000/failure/"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'stilbdrthapa@gmail.com'
+EMAIL_HOST_PASSWORD = 'ojrq lfrm qmrh qcsh'

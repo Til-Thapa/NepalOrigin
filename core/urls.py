@@ -14,6 +14,8 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
 
+    path('verify-otp/', views.verify_otp_view, name='verify_otp'),
+
     path('back/', views.back, name='back'),
 
     # Admin urls
@@ -28,7 +30,6 @@ urlpatterns = [
     # Business urls
     path('business/', views.business_register, name='business_register'),
     path('business/dashboard/', views.business_dashboard, name='business_dashboard'),
-
     path('admin-businesses/', views.business_list_admin, name='business_list_admin'),
     path('admin-businesses/<int:business_id>/update/<str:status>/', views.update_business_status, name='update_business_status'),
     path('admin-businesses/<int:business_id>/view/', views.view_business_details, name='view_business_details'),
@@ -54,7 +55,7 @@ urlpatterns = [
     path('products/<int:product_id>/delete/', views.delete_product, name='delete_product'),
     path('products-products/', views.products, name='products'),
     path('products-add/', views.add_product, name='add_product'),
-    path('products-detail/<int:product_id>/', views.product_detail, name='product_detail'),
+    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
 
     # cart
     path('cart/', views.cart_view, name='cart'),

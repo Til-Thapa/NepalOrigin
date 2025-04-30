@@ -38,7 +38,7 @@ class User(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
-# Business
+
 class Business(models.Model):
     business_id = models.AutoField(db_column='business_id', primary_key=True)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')
@@ -61,7 +61,7 @@ class Business(models.Model):
         return f"{self.business_name} {self.user_id.first_name}"
 
 
-# Products
+
 class ProductCategory(models.Model):
     category_id = models.AutoField(db_column='category_id', primary_key=True)
     category_name = models.CharField(db_column='category_name', max_length=50, unique=True)
@@ -96,7 +96,22 @@ class Product(models.Model):
         return f"{self.business_id} {self.product_name}"
 
 
-# Cart
+class Review(models.Model):
+    review_id = models.AutoField(db_column='review_id', primary_key=True)
+    product_id = models.ForeignKey(Product, db_column='product_id', on_delete=models.CASCADE, null=True, blank=True)
+    user_id = models.ForeignKey(User, db_column='user_id', on_delete=models.CASCADE, null=True, blank=True)
+    comment = models.TextField(db_column='comment')
+    rating = models.IntegerField(db_column='rating',default=1)
+    created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'review'
+
+    def __str__(self):
+        return f"Review for {self.product_id.product_name} by {self.user_id.first_name}"
+
+
 class Cart(models.Model):
     cart_id = models.AutoField(db_column='cart_id', primary_key=True)
     user_id = models.ForeignKey(User, db_column='user_id', on_delete=models.SET_NULL, null=True, blank=True)

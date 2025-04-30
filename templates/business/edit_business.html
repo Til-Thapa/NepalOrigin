@@ -1,32 +1,35 @@
 {% extends "business/business_nav.html" %}
 {% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 
-<div class="p-6 space-y-8">
+    <div class="mb-4">
+        <label for="business_name" class="block text-sm font-medium text-gray-700">Business Name</label>
+        <input type="text" id="business_name" name="business_name" value="{{ business.business_name }}"
+            class="mt-2 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+    </div>
 
-    <section class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold mb-4">Edit Business Details</h2>
+    <div class="mb-4">
+        <label for="business_phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+        <input type="text" id="business_phone_number" name="business_phone_number" value="{{ business.business_phone_number }}"
+            class="mt-2 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+    </div>
 
-        <form method="post">
-            {% csrf_token %}
+    <div class="mb-4">
+        <label for="citizenship_front" class="block text-sm font-medium text-gray-700">Citizenship Front (optional)</label>
+        <input type="file" id="citizenship_front" name="citizenship_front"
+            class="mt-2 p-2 w-full border border-gray-300 rounded-lg shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+    </div>
 
-            <div class="mb-4">
-                <label for="business_name" class="block text-sm font-medium">Business Name</label>
-                <input type="text" id="business_name" name="business_name" value="{{ business.business_name }}"
-                    class="mt-2 p-2 w-full border rounded-lg" required>
-            </div>
+    <div class="mb-4">
+        <label for="citizenship_back" class="block text-sm font-medium text-gray-700">Citizenship Back (optional)</label>
+        <input type="file" id="citizenship_back" name="citizenship_back"
+            class="mt-2 p-2 w-full border border-gray-300 rounded-lg shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+    </div>
 
-            <div class="mb-4">
-                <label for="business_phone_number" class="block text-sm font-medium">Phone Number</label>
-                <input type="text" id="business_phone_number" name="business_phone_number" value="{{ business.business_phone_number }}"
-                    class="mt-2 p-2 w-full border rounded-lg" required>
-            </div>
-
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">
-                Save Changes
-            </button>
-        </form>
-    </section>
-
-</div>
-
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-200">
+        Save Changes
+    </button>
+</form>
 {% endblock %}
+

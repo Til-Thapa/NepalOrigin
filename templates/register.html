@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Register</title>
+  <title>Register | Nepal's Origin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes fadeOut {
@@ -20,96 +20,107 @@
 </head>
 <body>
 
-{% if messages %}
-  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2 w-full max-w-md">
-    {% for message in messages %}
-      <div class="fade-out px-4 py-2 rounded shadow-md text-black text-sm text-center
-                  {% if message.tags == 'success' %}
-                    bg-green-200 border border-green-500
-                  {% elif message.tags == 'error' or message.tags == 'danger' %}
-                    bg-red-200 border border-red-500
-                  {% else %}
-                    bg-gray-200 border border-gray-400
-                  {% endif %}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
-
-<div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
-
-  <div class="flex items-center justify-center p-12 bg-white">
-    <div class="w-full max-w-md">
-      <h2 class="text-3xl font-bold mb-6 text-gray-800">Create an Account</h2>
-
-      <form method="post" enctype="multipart/form-data" class="space-y-6">
-        {% csrf_token %}
-        <div>
-          <label for="image" class="block text-sm font-medium mb-1">Profile Image</label>
-          <input type="file" name="image" id="image"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+  {% if messages %}
+    <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2 w-full max-w-md">
+      {% for message in messages %}
+        <div class="fade-out px-4 py-2 rounded shadow-md text-black text-sm text-center
+                    {% if message.tags == 'success' %}
+                      bg-green-200 border border-green-500
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                      bg-red-200 border border-red-500
+                    {% else %}
+                      bg-gray-200 border border-gray-400
+                    {% endif %}">
+          {{ message }}
         </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-        <div>
-          <label for="first_name" class="block text-sm font-medium mb-1">First Name</label>
-          <input type="text" name="first_name" id="first_name" required
-                 placeholder="Enter your first name"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+  <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+
+    <div class="flex items-center justify-center p-12 bg-white">
+      <div class="w-full max-w-md">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Create an Account</h2>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+
+          <div>
+            <label for="image" class="block text-sm font-medium mb-1">Profile Image</label>
+            <input type="file" name="image" id="image"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="first_name" class="block text-sm font-medium mb-1">First Name</label>
+            <input type="text" name="first_name" id="first_name" required
+                   placeholder="Enter your first name"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="middle_name" class="block text-sm font-medium mb-1">Middle Name (optional)</label>
+            <input type="text" name="middle_name" id="middle_name"
+                   placeholder="Enter your middle name (optional)"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="last_name" class="block text-sm font-medium mb-1">Last Name</label>
+            <input type="text" name="last_name" id="last_name" required
+                   placeholder="Enter your last name"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
+            <input type="email" name="email" id="email" required
+                   placeholder="Enter your email"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium mb-1">Password</label>
+            <input type="password" name="password" id="password" required minlength="8"
+                   pattern="^(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$"
+                   placeholder="Password"
+                   title="Password must be at least 8 characters and contain at least one number and one special character."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <label for="confirm_password" class="block text-sm font-medium mb-1">Confirm password</label>
+            <input type="password" name="confirm_password" id="confirm_password" required minlength="8"
+                   pattern="^(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$"
+                   placeholder="Confirm Password"
+                   title="Password must be at least 8 characters and contain at least one number and one special character."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+          </div>
+
+          <div>
+            <button type="submit"
+                    class="w-full py-2 bg-black text-white rounded-md font-semibold hover:bg-gray-800 transition">
+              Register
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-4 text-sm text-center">
+          Already have an account?
+          <a href="{% url 'login' %}" class="underline text-blue-600">Login</a>
         </div>
-
-        <div>
-          <label for="middle_name" class="block text-sm font-medium mb-1">Middle Name (optional)</label>
-          <input type="text" name="middle_name" id="middle_name"
-                 placeholder="Enter your middle name (optional)"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-        </div>
-
-        <div>
-          <label for="last_name" class="block text-sm font-medium mb-1">Last Name</label>
-          <input type="text" name="last_name" id="last_name" required
-                 placeholder="Enter your last name"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-        </div>
-
-        <div>
-          <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
-          <input type="email" name="email" id="email" required
-                 placeholder="Enter your email"
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-medium mb-1">Password</label>
-          <input type="password" name="password" id="password" required minlength="8"
-                 pattern="^(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$"
-                 placeholder="Password"
-                 title="Password must be at least 8 characters and contain at least one number and one special character."
-                 class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-        </div>
-
-        <div>
-          <button type="submit"
-                  class="w-full py-2 bg-black text-white rounded-md font-semibold hover:bg-gray-800 transition">
-            Register
-          </button>
-        </div>
-      </form>
-
-      <div class="mt-4 text-sm text-center">
-        Already have an account?
-        <a href="{% url 'login' %}" class="underline text-blue-600">Login</a>
       </div>
     </div>
-  </div>
 
-  <div class="flex flex-col justify-center items-center p-12 bg-gray-50 bg-[url('/static/webpage_images/home/hand2.jpg')] bg-cover bg-center bg-no-repeat min-h-[400px]">
-    <div class="max-w-md text-center bg-white bg-opacity-80 p-6 rounded-md">
-      <h1 class="text-4xl font-bold mb-4 text-black">Nepal's Origin</h1>
-      <p class="text-black-800 text-lg">Join us and become a part of a growing community of Nepalese farmers selling their products locally.</p>
+    <div class="flex flex-col justify-center items-center p-12 bg-gray-50 bg-[url('/static/webpage_images/home/hand2.jpg')] bg-cover bg-center bg-no-repeat min-h-[400px]">
+      <div class="max-w-md text-center bg-white bg-opacity-80 p-6 rounded-md">
+        <h1 class="text-4xl font-bold mb-4 text-black">Nepal's Origin</h1>
+        <p class="text-black-800 text-lg">Join us and become a part of a growing community of Nepalese farmers selling their products locally.</p>
+      </div>
     </div>
+
   </div>
 
-</div>
 </body>
 </html>
