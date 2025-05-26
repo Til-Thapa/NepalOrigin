@@ -1,4 +1,17 @@
-<form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
-    {{form|safe}}
-    <button type="submit">Pay with Esewa </button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting to Esewa...</title>
+</head>
+<body>
+    <p>Redirecting to Esewa. Please wait...</p>
+
+    <form id="esewaForm" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+        {{ form|safe }}
+    </form>
+
+    <script>
+        document.getElementById('esewaForm').submit();
+    </script>
+</body>
+</html>
