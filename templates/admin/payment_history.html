@@ -17,17 +17,14 @@
 
         <select name="payment_method" class="px-3 py-2 border rounded-md shadow-sm text-sm w-32 md:w-40">
             <option value="">Method</option>
-            <option value="Esewa" {% if request.GET.payment_method == 'Esewa' %}selected{% endif %}>Esewa</option>
-            <option value="Khalti" {% if request.GET.payment_method == 'Khalti' %}selected{% endif %}>Khalti</option>
+            <option value="cash_on_delivery" {% if request.GET.payment_method == 'cash_on_delivery' %}selected{% endif %}>Cash</option>
+            <option value="esewa" {% if request.GET.payment_method == 'esewa' %}selected{% endif %}>Esewa</option>
         </select>
-
         <select name="status" class="px-3 py-2 border rounded-md shadow-sm text-sm w-32 md:w-40">
             <option value="">Status</option>
             <option value="Pending" {% if request.GET.status == 'Pending' %}selected{% endif %}>Pending</option>
-            <option value="Processing" {% if request.GET.status == 'Processing' %}selected{% endif %}>Processing</option>
-            <option value="Delivering" {% if request.GET.status == 'Delivering' %}selected{% endif %}>Delivering</option>
-            <option value="Completed" {% if request.GET.status == 'Completed' %}selected{% endif %}>Completed</option>
-            <option value="Cancelled" {% if request.GET.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            <option value="Paid" {% if request.GET.status == 'Paid' %}selected{% endif %}>Paid</option>
+            <option value="Failed" {% if request.GET.status == 'Failed' %}selected{% endif %}>Failed</option>
         </select>
 
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm mt-2">Search</button>
@@ -47,6 +44,8 @@
                     <th class="px-6 py-4 text-left">Status</th>
                     <th class="px-6 py-4 text-left">Customer Name</th>
                     <th class="px-6 py-4 text-left">Date</th>
+                    <th class="px-6 py-4 text-left">Action</th>
+
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-100">
@@ -66,11 +65,23 @@
                             <td class="px-6 py-4 whitespace-nowrap">{{ order_item.quantity }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-800">Rs. {{ order_item.subtotal }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ payment_data.payment.payment_method }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ order_item.status }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-800">
+                                {{ payment_data.payment.status }}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-800">
                                 {{ payment_data.user_full_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ payment_data.payment.payment_date|date:"Y-m-d" }}</td>
+                            <td class="px-6 py-4">
+                                {% if payment_data.payment.status != "Paid" %}
+                                    <form method="POST" action="{% url 'mark_as_paid' payment_data.payment.payment_id %}" onsubmit="return confirm('Are you sure you want to mark this as Paid?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">Mark as Paid</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-green-600 font-semibold">Paid</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% empty %}
                         <tr>

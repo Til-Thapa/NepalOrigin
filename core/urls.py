@@ -73,12 +73,17 @@ urlpatterns = [
     path('user-payment-history/', views.user_payment_history, name='user_payment_history'),
     path('business-payment-history/', views.business_payment_history, name='business_payment_history'),
     path('admin-payment-history/', views.admin_payment_history, name='admin_payment_history'),
+    path('admin-payment-history-mark-paid<int:payment_id>', views.mark_as_paid, name='mark_as_paid'),
 
     path('update-order-item-status/<int:order_item_id>/<str:status>/', views.update_order_item_status, name='update_order_item_status'),
 
+    path('confirm_order/<int:order_id>/', views.confirm_order, name='confirm_order'),
+    path('success/<int:order_id>/', views.success, name='success'),
+    path('failure/<int:order_id>/', views.failure, name='failure'),
+
     # path("test-esewa/", esewa, name="test_esewa"),
-    path('esewa/payment/', views.esewa_payment, name='esewa_payment'),
-    path('esewa/success', views.success, name='esewa_success'),
-    path('esewa/failure', views.failure, name='esewa_failure'),
+    # path('esewa/payment/', views.esewa_payment, name='esewa_payment'),
+    # path('esewa/success', views.success, name='esewa_success'),
+    # path('esewa/failure', views.failure, name='esewa_failure'),
 ]
 

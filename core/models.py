@@ -192,6 +192,7 @@ class Payment(models.Model):
     payment_date = models.DateTimeField(db_column='payment_date', auto_now_add=True)
     payment_method = models.CharField(max_length=100, db_column='payment_method')
     amount = models.DecimalField(db_column='amount',max_digits=10, decimal_places=2)
+    status = models.CharField( max_length=20, choices=[('Pending', 'Pending'), ('Paid', 'Paid'), ('Failed', 'Failed')],default='Pending',db_column='status')
 
     class Meta:
         managed = False

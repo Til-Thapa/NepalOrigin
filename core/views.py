@@ -1,7 +1,9 @@
 import hashlib
 import hmac
 import random
+import uuid
 
+from django.contrib.sites import requests
 from django.core.mail import send_mail
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import User, UserRole, Business, Product, ProductCategory, Cart, CartItem, Orders, Order_Item, Payment, \
     Review
 from django.http import Http404, HttpResponse
-
+from esewa import EsewaPayment
 
 @csrf_exempt
 def home(request):
@@ -167,6 +169,8 @@ def generate_otp(request, email):
     request.session['otp'] = otp
     request.session['otp_email'] = email
     request.session['otp_verified'] = False
+    request.session['otp_attempts'] = 0
+
 
     send_mail(
         subject='Your OTP Code',
@@ -182,15 +186,27 @@ def verify_otp_view(request):
         user_otp = request.POST.get('otp')
         session_otp = request.session.get('otp')
 
+        if 'otp_attempts' not in request.session:
+            request.session['otp_attempts'] = 0
+
+        if request.session['otp_attempts'] >= 3:
+            messages.error(request, "Maximum OTP attempts exceeded. Please try again.")
+            for key in ['otp', 'otp_email', 'otp_verified', 'otp_next_url', 'otp_attempts', 'register_data', 'login_data', 'image_name', 'image_data', 'has_image']:
+                request.session.pop(key, None)
+            return redirect('login')
+
         if user_otp == session_otp:
             request.session['otp_verified'] = True
-            # messages.success(request, "OTP verified successfully.")
+            request.session['otp_attempts'] = 0
             return redirect(request.session.get('otp_next_url', 'home'))
         else:
-            messages.error(request, "Invalid OTP.")
+            request.session['otp_attempts'] += 1
+            remaining_attempts = 3 - request.session['otp_attempts']
+            messages.error(request, f"Invalid OTP. {remaining_attempts} attempts remaining.")
             return redirect('verify_otp')
 
     return render(request, 'verify_otp.html')
+
 
 def admin_dashboard(request):
     return render(request, 'admin/admin_dashboard.html')
@@ -274,12 +290,12 @@ def user_list(request):
     user_role = request.session.get('user_role')
 
     if user_role not in ['staff', 'superuser']:
-        raise Http404("Page not found")  # returns a 404 page
+        raise Http404("Page not found")
 
     users = User.objects.all()
 
     if user_role == 'staff':
-        users = users.exclude(role_id__in=[3, 4])  # Replace 1 and 2 with the appropriate role IDs.
+        users = users.exclude(role_id__in=[3, 4])
 
     return render(request, 'admin/user_list.html', {'users': users})
 
@@ -420,7 +436,37 @@ def business_dashboard(request):
 
     return render(request, 'business/business_dashboard.html')
 
+def admin_dashboard(request):
+    role_id = request.session.get('role_id')
+    user_id = request.session.get('user_id')
 
+    # Assuming role_id == 4 means admin
+    if role_id not in [3, 4]:
+        messages.error(request, "Access denied. Admins only.")
+        return redirect('home')
+
+    try:
+        admin_user = User.objects.get(user_id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, "Admin user not found.")
+        return redirect('login')
+
+    users = User.objects.all().order_by('-created_at')[:5]
+    business = Business.objects.all().order_by('-created_at')[:5]
+    products = Product.objects.all().order_by('-created_at')[:5]
+    orders = Orders.objects.all().order_by('-created_at')[:5]
+    payments = Payment.objects.all().order_by('-payment_date')[:5]
+
+    context = {
+        'admin_user': admin_user,
+        'users': users,
+        'products': products,
+        'orders': orders,
+        'payments': payments,
+        'business': business,
+    }
+
+    return render(request, 'admin/admin_dashboard.html', context)
 
 def pending(request):
     user_id = request.session.get('user_id')
@@ -1021,7 +1067,7 @@ def user_payment_history(request):
     search = request.GET.get('search', '')
 
     if status:
-        payments = payments.filter(order_id__order_item__status=status)
+        payments = payments.filter(status=status)
 
     if start_date and end_date:
         payments = payments.filter(payment_date__range=[start_date, end_date])
@@ -1045,8 +1091,6 @@ def user_payment_history(request):
         filtered_order_items = []
 
         for order_item in order_items:
-            if status and order_item.status != status:
-                continue
 
             if search:
                 if not matched_order_items.filter(pk=order_item.pk).exists():
@@ -1085,7 +1129,7 @@ def business_payment_history(request):
     search = request.GET.get('search', '')
 
     if status:
-        payments = payments.filter(order_id__order_item__status=status)
+        payments = payments.filter(status=status)
 
     if start_date and end_date:
         payments = payments.filter(payment_date__range=[start_date, end_date])
@@ -1111,8 +1155,6 @@ def business_payment_history(request):
         filtered_order_items = []
 
         for order_item in order_items:
-            if status and order_item.status != status:
-                continue
 
             if search:
                 if not matched_order_items.filter(pk=order_item.pk).exists():
@@ -1149,7 +1191,7 @@ def admin_payment_history(request):
     search = request.GET.get('search', '')
 
     if status:
-        payments = payments.filter(order_id__order_item__status=status)
+        payments = payments.filter(status=status)
 
     if start_date and end_date:
         payments = payments.filter(payment_date__range=[start_date, end_date])
@@ -1167,13 +1209,11 @@ def admin_payment_history(request):
     seen_payment_order_items = set()
 
     for payment in payments:
-        order_items = payment.order_id.order_item_set.all()  # Notice: No business filter here.
+        order_items = payment.order_id.order_item_set.all()
 
         filtered_order_items = []
 
         for order_item in order_items:
-            if status and order_item.status != status:
-                continue
 
             if search:
                 if not matched_order_items.filter(pk=order_item.pk).exists():
@@ -1200,82 +1240,210 @@ def admin_payment_history(request):
         'search': search,
     })
 
+
+def mark_as_paid(request, payment_id):
+    if request.method == 'POST':
+        payment = get_object_or_404(Payment, payment_id=payment_id)
+        payment.status = 'Paid'
+        payment.save()
+        messages.success(request, f"Payment ID {payment.payment_id} marked as Paid.")
+    return redirect('admin_payment_history')
+
+# def checkout(request):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         messages.error(request, "Please log in to place an order.")
+#         return redirect('login')
+#
+#     cart = get_object_or_404(Cart, user_id=user_id)
+#     cart_items = CartItem.objects.filter(cart_id=cart)
+#
+#     if not cart_items.exists():
+#         messages.warning(request, "Your cart is empty.")
+#         return redirect('cart')
+#
+#     if request.method == "POST":
+#         full_name = request.POST.get('full_name')
+#         phone_number = request.POST.get('phone_number')
+#         address_line1 = request.POST.get('address_line1')
+#         address_line2 = request.POST.get('address_line2', '')
+#         city = request.POST.get('city')
+#         payment_method = request.POST.get('payment_method', '').strip().lower()
+#
+#         if not full_name or not phone_number or not address_line1 or not city or not payment_method:
+#             messages.error(request, "Please fill in all required fields.")
+#             return redirect('checkout')
+#
+#         order = Orders.objects.create(
+#             user_id_id=user_id,
+#             full_name=full_name,
+#             phone_number=phone_number,
+#             address_line1=address_line1,
+#             address_line2=address_line2,
+#             city=city,
+#         )
+#
+#         total_amount = 150
+#         for item in cart_items:
+#             Order_Item.objects.create(
+#                 order_id=order,
+#                 product_id=item.product_id,
+#                 price=item.product_id.price,
+#                 quantity=item.quantity,
+#                 subtotal  = item.product_id.price * item.quantity,
+#                 status="Pending",
+#
+#             )
+#
+#             product = item.product_id
+#             product.quantity -= item.quantity
+#             product.save()
+#
+#             total_amount += item.product_id.price * item.quantity
+#
+#         if payment_method == "cash_on_delivery":
+#             Payment.objects.create(
+#                 order_id=order,
+#                 payment_method=payment_method,
+#                 amount=total_amount,
+#             )
+#             cart_items.delete()
+#             messages.success(request, "Order placed successfully with Cash on Delivery.")
+#             return redirect('home')
+#
+#         elif payment_method == "esewa":
+#
+#             Payment.objects.create(
+#                 order_id=order,
+#                 payment_method=payment_method,
+#                 amount=total_amount,
+#             )
+#             cart_items.delete()
+#             messages.success(request, "Order placed successfully with Cash on Delivery.")
+#             return redirect('home')
+#
+#             # return handle_esewa_payment(request, order, total_amount)
+#             pass
+#
+#         else:
+#             messages.error(request, "Invalid payment method.")
+#             return redirect('checkout')
+#
+#     return render(request, 'address.html')
+
+
+
+def get_cart_and_items(user_id):
+    cart = get_object_or_404(Cart, user_id=user_id)
+    cart_items = CartItem.objects.filter(cart_id=cart)
+    return cart, cart_items
+
+def validate_checkout_form(post_data):
+    required_fields = ['full_name', 'phone_number', 'address_line1', 'city', 'payment_method']
+    for field in required_fields:
+        if not post_data.get(field):
+            return False
+    return True
+
+def create_order(user_id, post_data):
+    order = Orders.objects.create(
+        user_id_id=user_id,
+        full_name=post_data.get('full_name'),
+        phone_number=post_data.get('phone_number'),
+        address_line1=post_data.get('address_line1'),
+        address_line2=post_data.get('address_line2', ''),
+        city=post_data.get('city'),
+    )
+    return order
+
+def process_order_items(order, cart_items):
+    total_amount = 0
+    for item in cart_items:
+        Order_Item.objects.create(
+            order_id=order,
+            product_id=item.product_id,
+            price=item.product_id.price,
+            quantity=item.quantity,
+            subtotal=item.product_id.price * item.quantity,
+            status="Pending",
+        )
+        product = item.product_id
+        product.quantity -= item.quantity
+        product.save()
+
+        total_amount += item.product_id.price * item.quantity
+    return total_amount
+
+def create_payment(order, payment_method, amount):
+    Payment.objects.create(
+        order_id=order,
+        payment_method=payment_method,
+        amount=amount,
+    )
+
 def checkout(request):
     user_id = request.session.get("user_id")
     if not user_id:
         messages.error(request, "Please log in to place an order.")
         return redirect('login')
 
-    cart = get_object_or_404(Cart, user_id=user_id)
-    cart_items = CartItem.objects.filter(cart_id=cart)
+    cart, cart_items = get_cart_and_items(user_id)
 
     if not cart_items.exists():
         messages.warning(request, "Your cart is empty.")
         return redirect('cart')
 
     if request.method == "POST":
-        full_name = request.POST.get('full_name')
-        phone_number = request.POST.get('phone_number')
-        address_line1 = request.POST.get('address_line1')
-        address_line2 = request.POST.get('address_line2', '')
-        city = request.POST.get('city')
-        payment_method = request.POST.get('payment_method', '').strip().lower()
-
-        if not full_name or not phone_number or not address_line1 or not city or not payment_method:
+        if not validate_checkout_form(request.POST):
             messages.error(request, "Please fill in all required fields.")
             return redirect('checkout')
 
-        order = Orders.objects.create(
-            user_id_id=user_id,
-            full_name=full_name,
-            phone_number=phone_number,
-            address_line1=address_line1,
-            address_line2=address_line2,
-            city=city,
-        )
+        order = create_order(user_id, request.POST)
+        total_amount = process_order_items(order, cart_items)
 
-        total_amount = 150
-        for item in cart_items:
-            Order_Item.objects.create(
-                order_id=order,
-                product_id=item.product_id,
-                price=item.product_id.price,
-                quantity=item.quantity,
-                subtotal  = item.product_id.price * item.quantity,
-                status="Pending",
-
-
-            )
-
-            product = item.product_id
-            product.quantity -= item.quantity
-            product.save()
-
-            total_amount += item.product_id.price * item.quantity
+        payment_method = request.POST.get('payment_method', '').strip().lower()
 
         if payment_method == "cash_on_delivery":
-            Payment.objects.create(
-                order_id=order,
-                payment_method=payment_method,
-                amount=total_amount,
+            create_payment(order, payment_method, total_amount)
+            item_lines = []
+            for item in cart_items:
+                product_name = item.product_id.product_name
+                quantity = item.quantity
+                price = item.product_id.price
+                total_price = price * quantity
+
+                item_lines.append(f"{product_name} - Qty: {quantity} - Price: Rs. {total_price}")
+
+            items_text = "\n".join(item_lines)
+
+            email_body = (
+                f"Thank you for your order!\n\n"
+                f"Order ID: {order.order_id}\n\n"
+                f"Ordered Items:\n{items_text}\n\n"
+                f"Total Amount: Rs. {total_amount}\n\n"
+                f"Payment Method: Cash on Delivery \n\n"
+                f"Your order will be delivered soon. Thank you for shopping with us!"
             )
+            user = User.objects.get(user_id=user_id)
+
+            # email = 'stilplaystore@gmail.com'
+            email = user.email
+            send_mail(
+                subject='Your Order Confirmation',
+                message=email_body,
+                from_email='stilbdrthapa@gmail.com',
+                recipient_list=[email],
+                fail_silently=False
+            )
+
             cart_items.delete()
             messages.success(request, "Order placed successfully with Cash on Delivery.")
+
             return redirect('home')
 
         elif payment_method == "esewa":
 
-            Payment.objects.create(
-                order_id=order,
-                payment_method=payment_method,
-                amount=total_amount,
-            )
-            cart_items.delete()
-            messages.success(request, "Order placed successfully with Cash on Delivery.")
-            return redirect('home')
-
-            # return handle_esewa_payment(request, order, total_amount)
-            pass
+            return redirect('confirm_order', order_id=order.order_id)
 
         else:
             messages.error(request, "Invalid payment method.")
@@ -1283,93 +1451,94 @@ def checkout(request):
 
     return render(request, 'address.html')
 
-# def handle_esewa_payment(request, order_esewa_id, amount):
-#     esewa_payment_url = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
-#     success_url = request.build_absolute_uri(f'/esewa/payment/success/{order_esewa_id}/')
-#     failure_url = request.build_absolute_uri(f'/esewa/payment/failed/{order_esewa_id}/')
-#
-#     context = {
-#         'payment_url': esewa_payment_url,
-#         'amt': amount,
-#         'pdc': 0,
-#         'psc': 0,
-#         'txAmt': 0,
-#         'tAmt': amount,
-#         'pid': str(order_esewa_id),
-#         'scd': 'EPAYTEST',  # Change this to your real merchant code from eSewa later
-#         'su': success_url,
-#         'fu': failure_url,
-#     }
-#     return render(request, 'esewa_payment.html', context)
-#
-# def esewa_payment_success(request, order_esewa_id, amount):
-#     order = get_object_or_404(Orders, pk=order_esewa_id)
-#
-#     user_id =request.session.get('user_id')
-#     Payment.objects.create(
-#         order_id=order,
-#         payment_method='esewa',
-#         amount = amount,
-#         # amount=order.order_item_set.aggregate(total=Sum('subtotal'))['total'] or 0,)
-#
-#     # Clear Cart
-#     cart_id = Cart.get_object_or_404(user_id=user_id)
-#
-#     CartItem.objects.filter(cart_id=cart_id).delete()
-#
-#     messages.success(request, "Payment successful and order confirmed via eSewa.")
-#     return redirect('user_orders')
-#
-# def esewa_payment_failed(request, order_esewa_id):
-#     order = get_object_or_404(Orders, pk=order_esewa_id)
-#
-#     messages.error(request, "Payment failed via eSewa. Please try again.")
-#     return redirect('cart')
+def confirm_order(request, order_id):
+    order = Orders.objects.get(order_id=order_id)
+    ot = Order_Item.objects.filter(order_id=order_id).first()
 
-from django.conf import settings
-import requests
+    uid=uuid.uuid4()
+    payment = EsewaPayment(
+        product_code="EPAYTEST",
+        success_url=f"http://localhost:8000/success/{order.order_id}/",
+        failure_url=f"http://localhost:8000/failure/{order.order_id}/",
+        secret_key="8gBm/:&EnhH.1/q"
+    )
 
-def generate_signature(data):
-    secret_key = settings.ESEWA_SECRET_KEY  # Add your secret key here
+    payment.create_signature(
+        ot.subtotal,
+        uid
+        # str(order.order_id)
 
-    signature = hmac.new(
-        secret_key.encode(), data.encode(), hashlib.sha256
-    ).hexdigest()
+    )
+    user_id = request.session.get("user_id")
+    user = User.objects.get(user_id=user_id)
+    cart, cart_items = get_cart_and_items(user_id)
 
-    return signature
+    item_lines = []
+    for item in cart_items:
+        product_name = item.product_id.product_name
+        quantity = item.quantity
+        price = item.product_id.price
+        total_price = price * quantity
 
+        item_lines.append(f"{product_name} - Qty: {quantity} - Price: Rs. {total_price}")
 
-def esewa_payment(request):
-    if request.method == "POST":
-        amount = request.POST.get('amount')
-        transaction_uuid = request.POST.get('transaction_uuid')
-        product_code = request.POST.get('product_code')
+    items_text = "\n".join(item_lines)
 
-        data = {
-            'amount': amount,
-            'transaction_uuid': transaction_uuid,
-            'product_code': product_code,
-            'success_url': request.build_absolute_uri('/esewa/success'),
-            'failure_url': request.build_absolute_uri('/esewa/failure'),
-            'signed_field_names': "total_amount,transaction_uuid,product_code",
-        }
+    email_body = (
+        f"Thank you for your order!\n\n"
+        f"Order ID: {order.order_id}\n\n"
+        f"Ordered Items:\n{items_text}\n\n"
+        f"Total Amount: Rs. {ot.subtotal}\n\n"
+        f"Payment Method: Esewa \n\n"
+        f"Your order will be delivered soon. Thank you for shopping with us!"
+    )
+    user = User.objects.get(user_id=user_id)
 
-        signature = generate_signature(f"{data['amount']}{data['transaction_uuid']}{data['product_code']}")
-        data['signature'] = signature
+    # email = 'stilplaystore@gmail.com'
+    email = user.email
+    send_mail(
+        subject='Your Order Confirmation',
+        message=email_body,
+        from_email='stilbdrthapa@gmail.com',
+        recipient_list=[email],
+        fail_silently=False
+    )
 
-        response = requests.post("https://rc-epay.esewa.com.np/api/epay/main/v2/form", data=data)
-
-        if response.status_code == 200:
-            return HttpResponse("Payment successful.")
-        else:
-            return HttpResponse("Payment failed.")
-
-    return render(request, "esewa/payment_form.html")
+    context = {
+        'form': payment.generate_form()
+    }
+    return render(request, 'order/checkout.html', context)
 
 
-def success(request):
-    return HttpResponse("Payment successful. Your transaction has been completed.")
+def success(request, order_id):
+    order = Orders.objects.get(order_id=order_id)
 
+    verified = True
+
+    if verified:
+        payment_exists = Payment.objects.filter(order_id=order).exists()
+        if not payment_exists:
+            order_items = Order_Item.objects.filter(order_id=order)
+            total_amount = sum(item.subtotal for item in order_items)
+
+            Payment.objects.create(
+                order_id=order,
+                payment_method='esewa',
+                amount=total_amount,
+                status='Paid'
+            )
+
+            cart = Cart.objects.get(user_id=order.user_id)
+            CartItem.objects.filter(cart_id=cart).delete()
+
+        messages.success(request, "Payment successful and order confirmed!")
+        return render(request, 'home.html')
+
+    else:
+        messages.error(request, "Payment verification failed.")
+        return redirect('failure', order_id=order_id)
 
 def failure(request):
-    return HttpResponse("Payment failed. Please try again.")
+    messages.error(request, "Payment failed or was cancelled.")
+    return render(request, 'home.html')
+

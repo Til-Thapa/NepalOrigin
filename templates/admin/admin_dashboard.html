@@ -1,5 +1,156 @@
 {% extends "admin/admin_nav.html" %}
 {% block content %}
-<h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
-<p>Here you can manage all.</p>
+<div class="container mx-auto px-4 py-6">
+
+  <!-- Admin Header -->
+  <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+
+  <!-- Admin Details -->
+  <div class="mb-8 p-4 bg-white rounded-lg shadow">
+    <h2 class="text-xl font-semibold mb-2">Admin</h2>
+    <p><strong>Name:</strong> {{ admin_user.first_name }} {{ admin_user.last_name }}</p>
+    <p><strong>Email:</strong> {{ admin_user.email }}</p>
+    <p><strong>Joined At:</strong> {{ admin_user.created_at|date:"Y-m-d H:i" }}</p>
+  </div>
+
+  <!-- Recent Users -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4">Recent Users</h2>
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+      <table class="w-full table-auto text-sm text-left">
+        <thead class="bg-gray-100 text-gray-600 uppercase">
+          <tr>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Email</th>
+            <th class="px-4 py-2">Date Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="border-b">
+            <td class="px-4 py-2">{{ user.first_name }}</td>
+            <td class="px-4 py-2">{{ user.email }}</td>
+            <td class="px-4 py-2">{{ user.created_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Grid for 2x2 layout -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+    <!-- Recent Businesses -->
+    <div>
+      <h2 class="text-xl font-semibold mb-4">Recent Businesses</h2>
+      <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="w-full table-auto text-sm text-left">
+          <thead class="bg-gray-100 text-gray-600 uppercase">
+            <tr>
+              <th class="px-4 py-2">Business Name</th>
+              <th class="px-4 py-2">Owner</th>
+              <th class="px-4 py-2">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for busines in business %}
+            <tr class="border-b">
+              <td class="px-4 py-2">{{ busines.business_name }}</td>
+              <td class="px-4 py-2">{{ busines.user_id.first_name }}</td>
+              <td class="px-4 py-2">{{ busines.created_at|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div>
+      <h2 class="text-xl font-semibold mb-4">Recent Products</h2>
+      <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="w-full table-auto text-sm text-left">
+          <thead class="bg-gray-100 text-gray-600 uppercase">
+            <tr>
+              <th class="px-4 py-2">Product</th>
+              <th class="px-4 py-2">Category</th>
+              <th class="px-4 py-2">Price</th>
+              <th class="px-4 py-2">Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+            <tr class="border-b">
+              <td class="px-4 py-2">{{ product.product_name }}</td>
+              <td class="px-4 py-2">{{ product.category_id.category_name }}</td>
+              <td class="px-4 py-2">Rs. {{ product.price }}</td>
+              <td class="px-4 py-2">{{ product.created_at|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div>
+      <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
+      <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="w-full table-auto text-sm text-left">
+          <thead class="bg-gray-100 text-gray-600 uppercase">
+            <tr>
+              <th class="px-4 py-2">Order ID</th>
+              <th class="px-4 py-2">User</th>
+              <th class="px-4 py-2">Total</th>
+              <th class="px-4 py-2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr class="border-b">
+              <td class="px-4 py-2">{{ order.order_id }}</td>
+              <td class="px-4 py-2">{{ order.user_id.first_name }}</td>
+              <td class="px-4 py-2">Rs. {{ order.total_amount }}</td>
+              <td class="px-4 py-2">{{ order.created_at|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div>
+      <h2 class="text-xl font-semibold mb-4">Recent Payments</h2>
+      <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="w-full table-auto text-sm text-left">
+          <thead class="bg-gray-100 text-gray-600 uppercase">
+            <tr>
+              <th class="px-4 py-2">Payment ID</th>
+              <th class="px-4 py-2">User</th>
+              <th class="px-4 py-2">Amount</th>
+              <th class="px-4 py-2">Method</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payment in payments %}
+            <tr class="border-b">
+              <td class="px-4 py-2">{{ payment.payment_id }}</td>
+              <td class="px-4 py-2">{{ payment.order_id.user_id.first_name }}</td>
+              <td class="px-4 py-2">Rs. {{ payment.amount }}</td>
+              <td class="px-4 py-2">{{ payment.payment_method }}</td>
+              <td class="px-4 py-2">{{ payment.status }}</td>
+              <td class="px-4 py-2">{{ payment.payment_date|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

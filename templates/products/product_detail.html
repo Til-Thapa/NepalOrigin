@@ -12,7 +12,7 @@
         <div class="flex flex-col justify-between space-y-4">
             <div>
                 <h1 class="text-3xl font-semibold text-gray-900">{{ product.product_name }}</h1>
-                <p class="text-lg text-gray-600">By: <span class="font-medium text-blue-600">{{ product.business_name }}</span></p>
+                <p class="text-lg text-gray-600">By: <span class="font-medium text-blue-600">{{ product.business_id.business_name }}</span></p>
             </div>
 
             <div>
@@ -48,48 +48,47 @@
     </div>
 </div>
 
-<div class="w-full max-w-4xl mx-auto mt-12 px-4">
-    <div class="mb-8">
-    <h2 class="text-2xl font-semibold text-gray-800">Write a Review</h2>
-    <form method="post" class="mt-4">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label for="rating" class="text-sm font-medium text-gray-600">Rating</label>
-            <select name="rating" id="rating" class="mt-2 text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="1">★</option>
-                <option value="2">★★</option>
-                <option value="3">★★★</option>
-                <option value="4">★★★★</option>
-                <option value="5">★★★★★</option>
-            </select>
-        </div>
+<!--<div class="w-full max-w-4xl mx-auto mt-12 px-4">-->
+<!--    <div class="mb-8">-->
+<!--    <h2 class="text-2xl font-semibold text-gray-800">Write a Review</h2>-->
+<!--    <form method="post" class="mt-4">-->
+<!--        {% csrf_token %}-->
+<!--        <div class="mb-4">-->
+<!--            <label for="rating" class="text-sm font-medium text-gray-600">Rating</label>-->
+<!--            <select name="rating" id="rating" class="mt-2 text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">-->
+<!--                <option value="1">★</option>-->
+<!--                <option value="2">★★</option>-->
+<!--                <option value="3">★★★</option>-->
+<!--                <option value="4">★★★★</option>-->
+<!--                <option value="5">★★★★★</option>-->
+<!--            </select>-->
+<!--        </div>-->
 
-        <!-- Comment -->
-        <div class="mb-4">
-            <label for="comment" class="text-sm font-medium text-gray-600">Comment</label>
-            <textarea name="comment" id="comment" rows="4" class="w-full text-sm border border-gray-300 rounded px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Write your review..."></textarea>
-        </div>
+<!--        <div class="mb-4">-->
+<!--            <label for="comment" class="text-sm font-medium text-gray-600">Comment</label>-->
+<!--            <textarea name="comment" id="comment" rows="4" class="w-full text-sm border border-gray-300 rounded px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Write your review..."></textarea>-->
+<!--        </div>-->
 
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-sm font-semibold transition">
-            Submit Review
-        </button>
-    </form>
-</div>
-    <h3 class="text-xl font-semibold text-gray-800 mt-12">Reviews</h3>
-    {% if reviews %}
-        <div class="mt-4 space-y-4">
-            {% for review in reviews %}
-                <div class="border-b pb-4">
-                    <p><strong>{{ review.user_id.first_name }}</strong> (Rating: {{ review.rating }} stars)</p>
-                    <p>{{ review.comment }}</p>
-                    <p class="text-sm text-gray-500">Posted on {{ review.created_at|date:"F d, Y" }}</p>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>No reviews yet. Be the first to write one!</p>
-    {% endif %}
-</div>
+<!--        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-sm font-semibold transition">-->
+<!--            Submit Review-->
+<!--        </button>-->
+<!--    </form>-->
+<!--</div>-->
+<!--    <h3 class="text-xl font-semibold text-gray-800 mt-12">Reviews</h3>-->
+<!--    {% if reviews %}-->
+<!--        <div class="mt-4 space-y-4">-->
+<!--            {% for review in reviews %}-->
+<!--                <div class="border-b pb-4">-->
+<!--                    <p><strong>{{ review.user_id.first_name }}</strong> (Rating: {{ review.rating }} stars)</p>-->
+<!--                    <p>{{ review.comment }}</p>-->
+<!--                    <p class="text-sm text-gray-500">Posted on {{ review.created_at|date:"F d, Y" }}</p>-->
+<!--                </div>-->
+<!--            {% endfor %}-->
+<!--        </div>-->
+<!--    {% else %}-->
+<!--        <p>No reviews yet. Be the first to write one!</p>-->
+<!--    {% endif %}-->
+<!--</div>-->
 
 
 </div>
